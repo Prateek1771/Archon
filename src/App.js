@@ -23,16 +23,22 @@ function useBreakpoint() {
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const T = {
+  // Backgrounds
   bg: '#08080D',
-  bgSubtle: '#0B0B14',
-  surface: '#10101C',
-  surfaceRaised: '#151522',
-  border: '#1C1C30',
-  borderHover: '#2A2A45',
-  borderActive: '#3A3A55',
+  bgDeep: '#050508',
+  bgSubtle: '#0A0A10',
+  bgSecondary: '#0F0F16',
+  surface: '#16161E',
+  surfaceRaised: '#1C1C26',
+  // Borders
+  border: '#1A1A1F',
+  borderHover: '#2A2A35',
+  borderActive: '#3A3A45',
+  // Text
   textPrimary: '#F1F5F9',
   textSecondary: '#94A3B8',
-  textMuted: '#526077',
+  textMuted: '#4A5568',
+  // Accents
   teal: '#00BCD4',
   orange: '#F5A623',
   green: '#10B981',
@@ -40,16 +46,19 @@ const T = {
   warmOrange: '#E8873A',
   red: '#EF4444',
   lightCyan: '#22D3EE',
+  cyan: '#22D3EE',
+  // Code
   codeText: '#7DD3FC',
-  codeBg: '#0C0C16',
+  codeBg: '#030306',
+  // Fonts
   fontDisplay: "'Syne', sans-serif",
   fontBody: "'Plus Jakarta Sans', sans-serif",
   fontMono: "'IBM Plex Mono', monospace",
-  // Glow helpers
-  glowTeal: '0 0 20px rgba(0,188,212,0.15), 0 0 40px rgba(0,188,212,0.05)',
-  glowOrange: '0 0 20px rgba(245,166,35,0.15), 0 0 40px rgba(245,166,35,0.05)',
-  glowGreen: '0 0 20px rgba(16,185,129,0.15), 0 0 40px rgba(16,185,129,0.05)',
-  radius: { sm: 6, md: 10, lg: 14, xl: 20 },
+  // Structural — BRUTALIST
+  borderWidth: '2px',
+  hardShadow: (color) => `4px 4px 0px 0px ${color || '#000'}`,
+  transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+  radius: { sm: 2, md: 4, lg: 4, xl: 4 },
 };
 
 // ─── Typewriter Hook ─────────────────────────────────────────────────────────
@@ -384,7 +393,6 @@ function CopyButton({ text, accent = T.teal }) {
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.style.position = 'fixed';
@@ -406,14 +414,17 @@ function CopyButton({ text, accent = T.teal }) {
       onClick={handleCopy}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', border: `1px solid ${copied ? T.green : T.border}`,
-        borderRadius: 4, background: copied ? T.green + '18' : 'transparent',
+        padding: '4px 10px',
+        border: `${T.borderWidth} solid ${copied ? T.green : T.border}`,
+        borderRadius: T.radius.sm,
+        background: copied ? T.green + '18' : 'transparent',
         color: copied ? T.green : T.textSecondary, cursor: 'pointer',
-        fontFamily: T.fontMono, fontSize: 11, fontWeight: 500,
-        transition: 'all 200ms ease',
+        fontFamily: T.fontMono, fontSize: 11, fontWeight: 600,
+        transition: T.transition,
+        boxShadow: copied ? T.hardShadow(T.green) : 'none',
       }}
-      onMouseEnter={e => { if (!copied) { e.target.style.borderColor = accent; e.target.style.color = accent; }}}
-      onMouseLeave={e => { if (!copied) { e.target.style.borderColor = T.border; e.target.style.color = T.textSecondary; }}}
+      onMouseEnter={e => { if (!copied) { e.currentTarget.style.borderColor = accent; e.currentTarget.style.color = accent; e.currentTarget.style.boxShadow = T.hardShadow(accent); }}}
+      onMouseLeave={e => { if (!copied) { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.textSecondary; e.currentTarget.style.boxShadow = 'none'; }}}
     >
       {copied ? <><CheckIcon /> COPIED</> : <><CopyIcon /> COPY</>}
     </button>
@@ -422,26 +433,42 @@ function CopyButton({ text, accent = T.teal }) {
 
 // ─── Code Block Component ───────────────────────────────────────────────────
 function CodeBlock({ command, accent = T.teal }) {
+  const lines = (command || '').split('\n');
   return (
     <div style={{
-      background: T.codeBg, border: `1px solid ${T.border}`, borderRadius: T.radius.sm,
-      padding: '10px 14px', marginTop: 10, display: 'flex',
-      alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
-      position: 'relative',
+      background: T.codeBg, border: `${T.borderWidth} solid ${T.border}`,
+      borderRadius: T.radius.sm,
+      marginTop: 10, display: 'flex',
+      alignItems: 'stretch', justifyContent: 'space-between', gap: 0,
+      position: 'relative', overflow: 'hidden',
     }}>
-      {/* Accent left bar */}
+      {/* Hard accent left bar */}
       <div style={{
-        position: 'absolute', left: 0, top: 8, bottom: 8, width: 2,
-        borderRadius: 1, background: accent + '40',
+        width: 3, flexShrink: 0, background: accent,
       }} />
+      {/* Line numbers */}
+      <div style={{
+        padding: '10px 8px', borderRight: `1px solid ${T.border}20`,
+        display: 'flex', flexDirection: 'column', gap: 0, userSelect: 'none',
+        flexShrink: 0,
+      }}>
+        {lines.map((_, i) => (
+          <span key={i} style={{
+            fontFamily: T.fontMono, fontSize: 10, color: T.teal + '50',
+            lineHeight: 1.6, display: 'block', textAlign: 'right', minWidth: 16,
+          }}>{i + 1}</span>
+        ))}
+      </div>
       <code style={{
         fontFamily: T.fontMono, fontSize: 12, color: T.codeText,
         lineHeight: 1.6, wordBreak: 'break-all', flex: 1, whiteSpace: 'pre-wrap',
-        paddingLeft: 6,
+        padding: '10px 12px',
       }}>
         {command}
       </code>
-      <CopyButton text={command} accent={accent} />
+      <div style={{ padding: '8px 8px 0 0', flexShrink: 0 }}>
+        <CopyButton text={command} accent={accent} />
+      </div>
     </div>
   );
 }
@@ -451,9 +478,10 @@ function SdlcBadge({ stage }) {
   const color = SDLC_COLORS[stage] || T.textMuted;
   return (
     <span style={{
-      display: 'inline-block', padding: '2px 8px', borderRadius: 9999,
-      background: color + '18', color, fontSize: 10, fontWeight: 600,
-      fontFamily: T.fontMono, textTransform: 'uppercase', letterSpacing: '0.05em',
+      display: 'inline-block', padding: '1px 6px', borderRadius: T.radius.sm,
+      background: color + '14', color, fontSize: 9, fontWeight: 700,
+      border: `1px solid ${color}40`,
+      fontFamily: T.fontMono, textTransform: 'uppercase', letterSpacing: '0.08em',
     }}>
       {stage}
     </span>
@@ -465,12 +493,12 @@ function StatPill({ label, count, color }) {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
-      padding: '5px 14px', borderRadius: 9999, background: color + '10',
-      border: `1px solid ${color}22`, fontFamily: T.fontMono, fontSize: 12,
-      transition: 'all 200ms ease-out',
+      padding: '4px 10px', borderRadius: T.radius.sm, background: color + '10',
+      border: `${T.borderWidth} solid ${color}40`, fontFamily: T.fontMono, fontSize: 11,
+      transition: T.transition,
     }}>
       <span style={{ color, fontWeight: 700, fontSize: 13 }}>{count}</span>
-      <span style={{ color: T.textSecondary, fontSize: 11 }}>{label}</span>
+      <span style={{ color: T.textSecondary, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
     </span>
   );
 }
@@ -509,21 +537,19 @@ function PhasesTab({ phases }) {
             key={p.id}
             onClick={() => setActivePhase(i)}
             style={{
-              width: bp.isMobile ? 36 : 40, height: bp.isMobile ? 36 : 40,
-              borderRadius: T.radius.md, border: 'none', flexShrink: 0,
-              background: i === activePhase
-                ? `linear-gradient(135deg, ${T.teal}25 0%, ${T.teal}10 100%)`
-                : 'transparent',
+              width: bp.isMobile ? 34 : 38, height: bp.isMobile ? 34 : 38,
+              borderRadius: T.radius.sm,
+              border: i === activePhase ? `${T.borderWidth} solid ${T.teal}` : `${T.borderWidth} solid ${T.border}`,
+              flexShrink: 0,
+              background: i === activePhase ? T.teal + '18' : 'transparent',
               color: i === activePhase ? T.teal : T.textMuted,
-              fontFamily: T.fontMono, fontSize: bp.isMobile ? 12 : 14, fontWeight: 600,
-              cursor: 'pointer', transition: 'all 250ms ease-out',
+              fontFamily: T.fontMono, fontSize: bp.isMobile ? 12 : 13, fontWeight: 700,
+              cursor: 'pointer', transition: T.transition,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               position: 'relative', zIndex: 1,
-              boxShadow: i === activePhase ? `0 0 12px ${T.teal}20` : 'none',
-              outline: i === activePhase ? `1px solid ${T.teal}40` : 'none',
             }}
-            onMouseEnter={e => { if (i !== activePhase) { e.currentTarget.style.color = T.teal; e.currentTarget.style.background = T.surface; } }}
-            onMouseLeave={e => { if (i !== activePhase) { e.currentTarget.style.color = T.textMuted; e.currentTarget.style.background = 'transparent'; } }}
+            onMouseEnter={e => { if (i !== activePhase) { e.currentTarget.style.color = T.teal; e.currentTarget.style.background = T.teal + '10'; e.currentTarget.style.borderColor = T.teal + '50'; } }}
+            onMouseLeave={e => { if (i !== activePhase) { e.currentTarget.style.color = T.textMuted; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = T.border; } }}
           >
             {i + 1}
           </button>
@@ -548,13 +574,15 @@ function PhasesTab({ phases }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {phase.steps?.map((step, idx) => (
             <div key={step.id} style={{
-              background: T.surface, border: `1px solid ${T.border}`,
-              borderRadius: T.radius.md, padding: 16,
-              transition: 'border-color 250ms ease-out, box-shadow 250ms ease-out',
-              animation: `fadeSlideIn 0.4s ease-out ${idx * 0.08}s both`,
+              background: T.bgSecondary,
+              border: `${T.borderWidth} solid ${T.border}`,
+              borderLeft: `4px solid ${T.teal}`,
+              borderRadius: T.radius.md, padding: 16, paddingLeft: 20,
+              transition: T.transition,
+              animation: `kernelFadeIn 0.3s ease-out ${idx * 0.06}s both`,
             }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = T.borderHover; e.currentTarget.style.boxShadow = `0 4px 16px rgba(0,0,0,0.2)`; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.boxShadow = 'none'; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = T.hardShadow(T.teal); }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translate(0,0)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 8,
@@ -591,12 +619,15 @@ function AgentsTab({ agents }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {agents.map((agent, i) => (
         <div key={i} style={{
-          background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius.md,
-          padding: 18, transition: 'border-color 250ms ease-out, box-shadow 250ms ease-out',
-          animation: `fadeSlideIn 0.4s ease-out ${i * 0.08}s both`,
+          background: T.bgSecondary,
+          border: `${T.borderWidth} solid ${T.border}`,
+          borderLeft: `4px solid ${T.orange}`,
+          borderRadius: T.radius.md,
+          padding: 18, paddingLeft: 20, transition: T.transition,
+          animation: `kernelFadeIn 0.3s ease-out ${i * 0.06}s both`,
         }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = T.orange + '50'; e.currentTarget.style.boxShadow = `0 4px 20px ${T.orange}10`; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.boxShadow = 'none'; }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = T.hardShadow(T.orange); }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translate(0,0)'; e.currentTarget.style.boxShadow = 'none'; }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <AgentIcon size={16} color={T.orange} />
@@ -625,8 +656,8 @@ function SkillsTab({ skills }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{
-        background: T.green + '10', border: `1px solid ${T.green}30`,
-        borderRadius: 8, padding: '10px 14px', fontFamily: T.fontMono,
+        background: T.green + '10', border: `${T.borderWidth} solid ${T.green}`,
+        borderRadius: T.radius.sm, padding: '8px 12px', fontFamily: T.fontMono,
         fontSize: 11, color: T.green, display: 'flex', alignItems: 'center', gap: 8,
       }}>
         <SkillIcon size={14} color={T.green} />
@@ -635,12 +666,15 @@ function SkillsTab({ skills }) {
 
       {skills.map((skill, i) => (
         <div key={i} style={{
-          background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius.md,
-          padding: 18, transition: 'border-color 250ms ease-out, box-shadow 250ms ease-out',
-          animation: `fadeSlideIn 0.4s ease-out ${i * 0.08}s both`,
+          background: T.bgSecondary,
+          border: `${T.borderWidth} solid ${T.border}`,
+          borderLeft: `4px solid ${T.green}`,
+          borderRadius: T.radius.md,
+          padding: 18, paddingLeft: 20, transition: T.transition,
+          animation: `kernelFadeIn 0.3s ease-out ${i * 0.06}s both`,
         }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = T.green + '50'; e.currentTarget.style.boxShadow = `0 4px 20px ${T.green}10`; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.boxShadow = 'none'; }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = T.hardShadow(T.green); }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translate(0,0)'; e.currentTarget.style.boxShadow = 'none'; }}
         >
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6,
@@ -691,12 +725,15 @@ function McpTab({ mcpServers }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {mcpServers.map((server, i) => (
         <div key={i} style={{
-          background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius.md,
-          padding: 18, transition: 'border-color 250ms ease-out, box-shadow 250ms ease-out',
-          animation: `fadeSlideIn 0.4s ease-out ${i * 0.08}s both`,
+          background: T.bgSecondary,
+          border: `${T.borderWidth} solid ${T.border}`,
+          borderLeft: `4px solid ${T.deepTeal}`,
+          borderRadius: T.radius.md,
+          padding: 18, paddingLeft: 20, transition: T.transition,
+          animation: `kernelFadeIn 0.3s ease-out ${i * 0.06}s both`,
         }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = T.deepTeal + '50'; e.currentTarget.style.boxShadow = `0 4px 20px ${T.deepTeal}10`; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.boxShadow = 'none'; }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = T.hardShadow(T.deepTeal); }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translate(0,0)'; e.currentTarget.style.boxShadow = 'none'; }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <McpIcon size={16} color={T.deepTeal} />
@@ -725,8 +762,11 @@ function DocsTab({ documentationPlan }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{
-        background: T.surface, border: `1px solid ${T.warmOrange}30`, borderRadius: 8,
+        background: T.bgSecondary,
+        border: `${T.borderWidth} solid ${T.warmOrange}`,
+        borderRadius: T.radius.sm,
         padding: 20,
+        boxShadow: T.hardShadow(T.warmOrange + '60'),
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <DocsIcon size={20} color={T.warmOrange} />
@@ -760,9 +800,9 @@ function DocsTab({ documentationPlan }) {
             }}>
               {documentationPlan.artifacts.map((artifact, i) => (
                 <span key={i} style={{
-                  display: 'inline-block', padding: '4px 10px', borderRadius: 6,
-                  background: T.warmOrange + '14', border: `1px solid ${T.warmOrange}30`,
-                  fontFamily: T.fontMono, fontSize: 12, color: T.warmOrange,
+                  display: 'inline-block', padding: '3px 8px', borderRadius: T.radius.sm,
+                  background: T.warmOrange + '14', border: `${T.borderWidth} solid ${T.warmOrange}40`,
+                  fontFamily: T.fontMono, fontSize: 11, color: T.warmOrange,
                 }}>
                   {artifact}
                 </span>
@@ -790,22 +830,23 @@ function FlowTab({ flowDiagram }) {
       startOnLoad: false,
       theme: 'dark',
       themeVariables: {
-        primaryColor: '#00ACC1',
-        primaryTextColor: '#F1F5F9',
-        primaryBorderColor: '#1E1E2E',
+        primaryColor: '#F5A623',
+        primaryTextColor: '#050508',
+        primaryBorderColor: '#22D3EE',
         lineColor: '#22D3EE',
-        secondaryColor: '#F5A623',
-        tertiaryColor: '#0F0F1A',
-        background: '#0A0A0F',
-        mainBkg: '#1E1E2E',
-        nodeBorder: '#00ACC1',
-        clusterBkg: '#0F0F1A',
-        clusterBorder: '#1E1E2E',
-        titleColor: '#F1F5F9',
-        edgeLabelBackground: '#0F0F1A',
-        nodeTextColor: '#F1F5F9',
+        secondaryColor: '#16161E',
+        tertiaryColor: '#0F0F16',
+        background: '#050508',
+        mainBkg: '#F5A623',
+        nodeBorder: '#22D3EE',
+        clusterBkg: '#0A0A10',
+        clusterBorder: '#1A1A1F',
+        titleColor: '#22D3EE',
+        edgeLabelBackground: '#050508',
+        nodeTextColor: '#050508',
+        fontFamily: "'IBM Plex Mono', monospace",
       },
-      flowchart: { curve: 'basis', padding: 16 },
+      flowchart: { curve: 'linear', padding: 12 },
       fontFamily: "'IBM Plex Mono', monospace",
     });
 
@@ -1238,61 +1279,85 @@ function TypewriterText({ text, speed = 15, style = {}, as: Tag = 'span' }) {
 }
 
 // ─── Skeleton Loader ─────────────────────────────────────────────────────────
-function SkeletonBlock({ width = '100%', height = 14, radius = 6, style = {} }) {
+const KERNEL_LOGS = [
+  '[SYS] Booting Archon kernel...',
+  '[PRD] Parsing requirements document...',
+  '[AI]  Consulting claude-sonnet-4-5...',
+  '[MAP] Mapping SDLC phase structure...',
+  '[AGT] Generating agent definitions...',
+  '[SKL] Resolving skills.sh catalog...',
+  '[MCP] Configuring MCP server list...',
+  '[DOC] Scaffolding documentation agent...',
+  '[FLW] Rendering Mermaid flow diagram...',
+  '[GEN] Writing project files...',
+  '[SYS] Architecture blueprint ready.',
+];
+
+function KernelLogLoader() {
+  const [visibleLines, setVisibleLines] = useState(1);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setVisibleLines(v => v < KERNEL_LOGS.length ? v + 1 : v);
+    }, 420);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div style={{
-      width, height, borderRadius: radius,
-      background: `linear-gradient(90deg, ${T.surface} 25%, ${T.border} 50%, ${T.surface} 75%)`,
-      backgroundSize: '800px 100%',
-      animation: 'shimmer 1.5s ease-in-out infinite',
-      ...style,
-    }} />
-  );
-}
-
-function SkeletonLoader() {
-  return (
-    <div style={{ flex: 1, padding: 24, display: 'flex', flexDirection: 'column', gap: 20, overflow: 'hidden' }}>
-      {/* Project name */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderBottom: `1px solid ${T.border}`, paddingBottom: 16 }}>
-        <SkeletonBlock width="55%" height={24} radius={8} />
-        <SkeletonBlock width="80%" height={12} />
-        <SkeletonBlock width="65%" height={12} />
-        {/* Stat pills row */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-          <SkeletonBlock width={72} height={24} radius={12} />
-          <SkeletonBlock width={72} height={24} radius={12} />
-          <SkeletonBlock width={80} height={24} radius={12} />
-          <SkeletonBlock width={90} height={24} radius={12} />
+      flex: 1, padding: 28, display: 'flex', flexDirection: 'column',
+      justifyContent: 'center', gap: 0, overflow: 'hidden',
+    }}>
+      <div style={{
+        border: `${T.borderWidth} solid ${T.teal}40`,
+        borderRadius: T.radius.md,
+        padding: 20, background: T.bgDeep,
+        maxWidth: 480,
+      }}>
+        <div style={{
+          fontFamily: T.fontMono, fontSize: 10, color: T.teal,
+          letterSpacing: '0.1em', marginBottom: 14, textTransform: 'uppercase',
+        }}>
+          // ARCHON KERNEL — PROCESSING
         </div>
-      </div>
-
-      {/* Fake tab bar */}
-      <div style={{ display: 'flex', gap: 12, borderBottom: `1px solid ${T.border}`, paddingBottom: 10 }}>
-        <SkeletonBlock width={64} height={16} radius={4} />
-        <SkeletonBlock width={56} height={16} radius={4} />
-        <SkeletonBlock width={48} height={16} radius={4} />
-        <SkeletonBlock width={72} height={16} radius={4} />
-        <SkeletonBlock width={44} height={16} radius={4} />
-      </div>
-
-      {/* Content blocks */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {[0, 1, 2, 3].map(i => (
+        {KERNEL_LOGS.slice(0, visibleLines).map((line, i) => (
           <div key={i} style={{
-            background: T.surface, borderRadius: 10, border: `1px solid ${T.border}`,
-            padding: 16, display: 'flex', flexDirection: 'column', gap: 10,
+            fontFamily: T.fontMono, fontSize: 12, lineHeight: 2,
+            color: i === visibleLines - 1 ? T.teal : T.textMuted,
+            animation: 'kernelFadeIn 0.2s ease-out both',
+            display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <SkeletonBlock width={28} height={28} radius={8} />
-              <SkeletonBlock width="40%" height={16} radius={6} />
-            </div>
-            <SkeletonBlock width="90%" height={11} />
-            <SkeletonBlock width="70%" height={11} />
+            {i === visibleLines - 1 && (
+              <span style={{ color: T.teal, animation: 'cursorBlink 0.8s step-end infinite' }}>▋</span>
+            )}
+            {line}
           </div>
         ))}
       </div>
     </div>
+  );
+}
+
+// ─── Mobile FAB ─────────────────────────────────────────────────────────────
+function MobileFAB({ label, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        position: 'fixed', bottom: 20, right: 20,
+        width: 44, height: 44, borderRadius: T.radius.sm,
+        background: T.teal, color: T.bgDeep,
+        border: `${T.borderWidth} solid ${T.teal}`,
+        boxShadow: T.hardShadow(T.teal),
+        fontFamily: T.fontMono, fontSize: 18, fontWeight: 700,
+        cursor: 'pointer', zIndex: 100,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: T.transition,
+      }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = T.hardShadow(T.deepTeal); }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translate(0,0)'; e.currentTarget.style.boxShadow = T.hardShadow(T.teal); }}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -1461,7 +1526,7 @@ export default function App() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: T.bg, color: T.textPrimary,
+      minHeight: (bp.isDesktop || result) ? '100vh' : 'auto', background: T.bg, color: T.textPrimary,
       fontFamily: T.fontMono, display: 'flex', flexDirection: 'column',
     }}>
       {/* Subtle scanline overlay */}
@@ -1479,76 +1544,66 @@ export default function App() {
 
       {/* Header */}
       <header style={{
-        padding: bp.isMobile ? '12px 16px' : '14px 28px',
-        borderBottom: `1px solid ${T.border}`,
+        padding: bp.isMobile ? '10px 16px' : '11px 24px',
+        borderBottom: `${T.borderWidth} solid ${T.border}`,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: bp.isMobile ? 8 : 12,
+        flexWrap: 'nowrap', gap: bp.isMobile ? 8 : 12,
         position: 'relative', zIndex: 1,
-        background: `linear-gradient(180deg, ${T.bgSubtle} 0%, ${T.bg} 100%)`,
+        background: T.bgDeep,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: bp.isMobile ? 10 : 14 }}>
-          {/* Logo mark */}
+          {/* Logo mark — solid teal square */}
           <div style={{
-            width: bp.isMobile ? 32 : 36, height: bp.isMobile ? 32 : 36,
-            borderRadius: T.radius.md,
-            background: `linear-gradient(135deg, ${T.teal}20 0%, ${T.deepTeal}10 100%)`,
-            border: `1px solid ${T.teal}30`,
+            width: bp.isMobile ? 30 : 34, height: bp.isMobile ? 30 : 34,
+            borderRadius: T.radius.sm,
+            background: T.teal,
+            border: `${T.borderWidth} solid ${T.teal}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
+            boxShadow: T.hardShadow(T.teal + '80'),
           }}>
-            <svg width={bp.isMobile ? 16 : 18} height={bp.isMobile ? 16 : 18} viewBox="0 0 24 24" fill="none" stroke={T.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width={bp.isMobile ? 14 : 16} height={bp.isMobile ? 14 : 16} viewBox="0 0 24 24" fill="none" stroke={T.bgDeep} strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
               <polyline points="4,17 10,11 4,5" /><line x1="12" y1="19" x2="20" y2="19" />
             </svg>
           </div>
           <div>
             <h1 style={{
-              fontFamily: T.fontDisplay, fontSize: bp.isMobile ? 16 : 19, fontWeight: 800,
-              margin: 0, letterSpacing: '-0.03em', color: T.textPrimary,
-              lineHeight: 1.2,
+              fontFamily: T.fontDisplay, fontSize: bp.isMobile ? 13 : 17, fontWeight: 800,
+              margin: 0, letterSpacing: '0.06em', color: T.textPrimary,
+              lineHeight: 1.1, textTransform: 'uppercase', whiteSpace: 'nowrap',
             }}>
-              Claude <span style={{ color: T.teal }}>Architect</span>
+              ARCHON <span style={{ color: T.teal, fontWeight: 400, letterSpacing: '0.04em' }}>{bp.isMobile ? '// ARCHITECT' : '// PROJECT ARCHITECT'}</span>
             </h1>
             {!bp.isMobile && (
               <p style={{
-                fontFamily: T.fontMono, fontSize: 11, color: T.textMuted,
-                margin: 0, letterSpacing: '0.02em',
+                fontFamily: T.fontMono, fontSize: 10, color: T.textMuted,
+                margin: 0, letterSpacing: '0.08em', textTransform: 'uppercase',
               }}>
-                PRD to CLI Architecture
+                PRD → CLI ARCHITECTURE GENERATOR
               </p>
             )}
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* Mobile panel toggle */}
-          {bp.isMobile && result && (
-            <button
-              onClick={() => setShowInput(prev => !prev)}
-              style={{
-                padding: '5px 12px', borderRadius: T.radius.sm,
-                border: `1px solid ${T.border}`, background: 'transparent',
-                color: T.textSecondary, fontFamily: T.fontMono, fontSize: 11,
-                cursor: 'pointer', transition: 'all 200ms',
-              }}
-            >
-              {showInput ? 'View Output' : 'Edit PRD'}
-            </button>
-          )}
-          {/* Version pill */}
+          {/* Version badge — sharp, not pill */}
           <span style={{
-            padding: '3px 10px', borderRadius: 9999,
-            background: T.teal + '12', border: `1px solid ${T.teal}25`,
-            fontFamily: T.fontMono, fontSize: 10, color: T.teal,
-            fontWeight: 500, letterSpacing: '0.03em',
+            padding: bp.isMobile ? '2px 6px' : '3px 8px',
+            borderRadius: T.radius.sm,
+            background: 'transparent',
+            border: `${T.borderWidth} solid ${T.teal}50`,
+            fontFamily: T.fontMono, fontSize: bp.isMobile ? 9 : 10, color: T.teal,
+            fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
           }}>
-            v0.1.0
+            v0.1.0-STABLE
           </span>
         </div>
       </header>
 
       {/* Main content — responsive layout */}
       <div style={{
-        flex: 1, display: 'flex',
+        flex: (bp.isDesktop || result) ? 1 : 'none', display: 'flex',
         flexDirection: bp.isDesktop ? 'row' : 'column',
         minHeight: 0, position: 'relative', zIndex: 1,
         overflow: bp.isDesktop ? 'hidden' : 'auto',
@@ -1556,27 +1611,28 @@ export default function App() {
         {/* LEFT PANEL — PRD Input + File Upload */}
         <div style={{
           ...(bp.isDesktop
-            ? { width: '42%', minWidth: 360, borderRight: `1px solid ${T.border}` }
-            : { width: '100%', borderBottom: `1px solid ${T.border}` }),
+            ? { width: '42%', minWidth: 360, borderRight: `${T.borderWidth} solid ${T.border}`, animation: loading ? 'dividerPulse 1.5s ease-in-out infinite' : 'none' }
+            : { width: '100%', borderBottom: `${T.borderWidth} solid ${T.border}` }),
           display: (bp.isMobile && result && !showInput) ? 'none' : 'flex',
           flexDirection: 'column',
-          padding: bp.isMobile ? '16px' : bp.isTablet ? '20px 24px' : '24px 28px',
-          gap: bp.isMobile ? 14 : 18,
-          background: T.bg,
-          ...(bp.isDesktop ? {} : { maxHeight: bp.isTablet ? '50vh' : 'none' }),
+          padding: bp.isMobile ? '14px' : bp.isTablet ? '18px 22px' : '20px 24px',
+          gap: bp.isMobile ? 12 : 16,
+          background: T.bgDeep,
+          ...(bp.isDesktop ? {} : {}),
         }}>
           <div>
             <h2 style={{
-              fontFamily: T.fontDisplay, fontSize: 16, fontWeight: 700,
-              margin: '0 0 6px 0', color: T.textPrimary, letterSpacing: '-0.02em',
+              fontFamily: T.fontMono, fontSize: 11, fontWeight: 700,
+              margin: '0 0 4px 0', color: T.teal, letterSpacing: '0.1em',
+              textTransform: 'uppercase',
             }}>
-              Paste Your PRD
+              // INPUT.PRD
             </h2>
             <p style={{
-              fontFamily: T.fontBody, fontSize: 13, color: T.textMuted, margin: 0,
-              lineHeight: 1.5,
+              fontFamily: T.fontMono, fontSize: 11, color: T.textMuted, margin: 0,
+              lineHeight: 1.5, letterSpacing: '0.02em',
             }}>
-              Describe your project or upload files. The more detail, the better the output.
+              Describe your project — more detail = better output.
             </p>
           </div>
 
@@ -1591,15 +1647,15 @@ export default function App() {
             onClick={() => fileInputRef.current?.click()}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); }}}
             style={{
-              border: `1.5px dashed ${dragOver ? T.teal : T.border}`,
-              borderRadius: T.radius.lg, padding: '16px 18px', cursor: 'pointer',
-              background: dragOver ? T.teal + '08' : T.surface + '60',
-              transition: 'all 250ms ease-out', display: 'flex', flexDirection: 'column',
-              alignItems: 'center', gap: 8,
-              boxShadow: dragOver ? `inset 0 0 30px ${T.teal}08` : 'none',
+              border: `2px dashed ${dragOver ? T.teal : T.border}`,
+              borderRadius: T.radius.sm, padding: '14px 16px', cursor: 'pointer',
+              background: dragOver ? T.teal + '08' : T.bgSecondary,
+              transition: T.transition, display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: 6,
+              boxShadow: dragOver ? T.hardShadow(T.teal) : 'none',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = T.borderHover; e.currentTarget.style.background = T.surface; }}
-            onMouseLeave={e => { if (!dragOver) { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = T.surface + '60'; } }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = T.teal + '80'; e.currentTarget.style.background = T.surface; }}
+            onMouseLeave={e => { if (!dragOver) { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = T.bgSecondary; } }}
           >
             <input
               ref={fileInputRef}
@@ -1672,16 +1728,19 @@ export default function App() {
             onChange={e => setPrd(e.target.value)}
             placeholder={PLACEHOLDER_PRD}
             style={{
-              flex: 1, resize: 'vertical', background: T.surface,
-              border: `1px solid ${T.border}`, borderRadius: T.radius.md,
+              flex: 1, resize: 'vertical', background: T.bgDeep,
+              border: `${T.borderWidth} solid ${T.teal}`,
+              borderRadius: T.radius.sm,
               padding: bp.isMobile ? 12 : 16, color: T.textPrimary,
               fontFamily: T.fontMono,
               fontSize: bp.isMobile ? 12 : 13, lineHeight: 1.7, outline: 'none',
-              transition: 'border-color 250ms ease-out, box-shadow 250ms ease-out',
-              minHeight: bp.isMobile ? 180 : 240,
+              transition: T.transition,
+              minHeight: bp.isMobile ? 'calc(100dvh - 320px)' : bp.isTablet ? 'calc(100vh - 360px)' : 240,
+              backgroundImage: `radial-gradient(circle, ${T.teal}10 1px, transparent 1px)`,
+              backgroundSize: '20px 20px',
             }}
-            onFocus={e => { e.target.style.borderColor = T.teal + '50'; e.target.style.boxShadow = `0 0 0 3px ${T.teal}12`; }}
-            onBlur={e => { e.target.style.borderColor = T.border; e.target.style.boxShadow = 'none'; }}
+            onFocus={e => { e.target.style.boxShadow = `0 0 0 2px ${T.teal}40`; }}
+            onBlur={e => { e.target.style.boxShadow = 'none'; }}
           />
 
           <div style={{
@@ -1705,103 +1764,97 @@ export default function App() {
 
             <button
               onClick={() => { handleGenerate(); if (bp.isMobile) setShowInput(false); }}
-              disabled={!prd.trim() || loading}
+              disabled={(!prd.trim() && uploadedFiles.length === 0) || loading}
               style={{
-                padding: bp.isMobile ? '12px 20px' : '11px 28px',
-                borderRadius: T.radius.md, border: 'none',
-                background: (!prd.trim() || loading)
-                  ? T.border
-                  : `linear-gradient(135deg, ${T.teal} 0%, ${T.deepTeal} 100%)`,
-                color: (!prd.trim() || loading) ? T.textMuted : '#fff',
-                fontFamily: T.fontMono, fontSize: bp.isMobile ? 12 : 13, fontWeight: 600,
+                padding: bp.isMobile ? '11px 20px' : '10px 22px',
+                borderRadius: T.radius.sm,
+                border: `${T.borderWidth} solid ${(!prd.trim() || loading) ? T.border : T.teal}`,
+                background: (!prd.trim() || loading) ? T.surface : T.teal,
+                color: (!prd.trim() || loading) ? T.textMuted : T.bgDeep,
+                fontFamily: T.fontMono, fontSize: 12, fontWeight: 700,
                 cursor: (!prd.trim() || loading) ? 'not-allowed' : 'pointer',
-                transition: 'all 250ms ease-out', position: 'relative',
-                boxShadow: (!prd.trim() || loading)
-                  ? 'none'
-                  : `0 4px 16px ${T.teal}30, 0 1px 3px rgba(0,0,0,0.3)`,
-                animation: loading ? 'glowPulse 2s ease-in-out infinite' : 'none',
-                letterSpacing: '0.02em',
+                transition: T.transition,
+                letterSpacing: '0.08em', textTransform: 'uppercase',
+                boxShadow: (!prd.trim() || loading) ? 'none' : T.hardShadow(T.deepTeal),
                 ...(bp.isMobile ? { width: '100%' } : {}),
               }}
               onMouseEnter={e => {
                 if (prd.trim() && !loading) {
-                  e.target.style.boxShadow = `0 6px 24px ${T.teal}45, 0 2px 6px rgba(0,0,0,0.4)`;
-                  e.target.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.transform = 'translate(-2px,-2px)';
+                  e.currentTarget.style.boxShadow = T.hardShadow(T.teal);
                 }
               }}
               onMouseLeave={e => {
                 if (prd.trim() && !loading) {
-                  e.target.style.boxShadow = `0 4px 16px ${T.teal}30, 0 1px 3px rgba(0,0,0,0.3)`;
-                  e.target.style.transform = 'translateY(0)';
+                  e.currentTarget.style.transform = 'translate(0,0)';
+                  e.currentTarget.style.boxShadow = T.hardShadow(T.deepTeal);
                 }
               }}
             >
-              {loading ? 'Analyzing PRD...' : 'Generate CLI Architecture'}
+              {loading ? '// PROCESSING...' : '> GENERATE ARCHITECTURE'}
             </button>
           </div>
 
           {error && (
             <div style={{
-              background: T.red + '0C', border: `1px solid ${T.red}30`,
-              borderRadius: T.radius.md, padding: '12px 16px', fontFamily: T.fontMono,
-              fontSize: 12, color: T.red, lineHeight: 1.6,
-              boxShadow: `0 0 20px ${T.red}08`,
+              background: T.bgDeep, border: `${T.borderWidth} solid ${T.red}`,
+              borderRadius: T.radius.sm, padding: '10px 14px', fontFamily: T.fontMono,
+              fontSize: 11, color: T.red, lineHeight: 1.6,
+              boxShadow: T.hardShadow(T.red + '80'),
             }}>
-              {error}
+              [ERR] {error}
             </div>
           )}
         </div>
 
         {/* RIGHT PANEL — Structured Output (top) + Generated Files (bottom) */}
         <div style={{
-          flex: 1, display: (bp.isMobile && showInput && result) ? 'none' : 'flex',
+          flex: 1, display: (!bp.isDesktop && !result) ? 'none' : (bp.isMobile && showInput && result) ? 'none' : 'flex',
           flexDirection: 'column',
           overflow: bp.isDesktop ? 'hidden' : 'auto',
           minHeight: bp.isMobile ? 'calc(100vh - 60px)' : 0,
         }}>
           {loading && !result ? (
-            <SkeletonLoader />
+            <KernelLogLoader />
           ) : !result ? (
             <div style={{
-              flex: 1, display: bp.isMobile ? 'none' : 'flex',
+              flex: 1, display: bp.isDesktop ? 'flex' : 'none',
               alignItems: 'center', justifyContent: 'center',
-              flexDirection: 'column', gap: 20,
               padding: bp.isTablet ? 32 : 48,
             }}>
-              {/* Animated icon container */}
               <div style={{
-                width: bp.isTablet ? 60 : 72, height: bp.isTablet ? 60 : 72,
-                borderRadius: T.radius.xl,
-                background: `linear-gradient(135deg, ${T.surface} 0%, ${T.surfaceRaised} 100%)`,
-                border: `1px solid ${T.border}`, display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                animation: 'subtleFloat 4s ease-in-out infinite',
-                boxShadow: `0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 ${T.borderHover}`,
+                background: T.bgSecondary,
+                border: `${T.borderWidth} solid ${T.teal}40`,
+                borderRadius: T.radius.sm,
+                padding: bp.isTablet ? '24px 28px' : '28px 36px',
+                textAlign: 'center', maxWidth: 340,
               }}>
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={T.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
-                  <polyline points="4,17 10,11 4,5" /><line x1="12" y1="19" x2="20" y2="19" />
-                </svg>
-              </div>
-              <div style={{ textAlign: 'center', maxWidth: 380 }}>
-                <p style={{
-                  fontFamily: T.fontBody, fontSize: 15, color: T.textSecondary,
-                  lineHeight: 1.6, margin: '0 0 6px 0',
+                <div style={{
+                  fontFamily: T.fontMono, fontSize: 36, color: T.teal,
+                  marginBottom: 16, letterSpacing: '0.05em', fontWeight: 800,
                 }}>
-                  Paste your PRD and click
-                </p>
-                <p style={{
-                  fontFamily: T.fontMono, fontSize: 13, color: T.teal,
-                  margin: 0, fontWeight: 500,
+                  &gt;_
+                </div>
+                <div style={{
+                  fontFamily: T.fontMono, fontSize: 10, color: T.textMuted,
+                  marginBottom: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
                 }}>
-                  Generate CLI Architecture
-                </p>
+                  AWAITING INPUT
+                </div>
+                <div style={{
+                  fontFamily: T.fontMono, fontSize: 12, color: T.teal,
+                  marginBottom: 16, letterSpacing: '0.02em',
+                }}>
+                  Paste PRD → Generate Architecture
+                </div>
+                <div style={{
+                  paddingTop: 14, borderTop: `1px solid ${T.border}`,
+                  fontFamily: T.fontMono, fontSize: 10, color: T.textMuted,
+                  lineHeight: 1.9, letterSpacing: '0.03em',
+                }}>
+                  phases · agents · skills<br />mcp · flow · files
+                </div>
               </div>
-              <p style={{
-                fontFamily: T.fontMono, fontSize: 11, color: T.textMuted,
-                textAlign: 'center', lineHeight: 1.5, maxWidth: 320, opacity: 0.7,
-              }}>
-                Generates phases, agents, skills, MCP servers, flow diagrams, and project files
-              </p>
             </div>
           ) : (
             <>
@@ -1871,23 +1924,25 @@ export default function App() {
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         style={{
-                          display: 'flex', alignItems: 'center', gap: bp.isMobile ? 4 : 6,
-                          padding: bp.isMobile ? '8px 10px' : '9px 16px',
-                          border: 'none', whiteSpace: 'nowrap', flexShrink: 0,
-                          background: isActive ? T.surface : 'transparent',
+                          display: 'flex', alignItems: 'center', gap: bp.isMobile ? 4 : 5,
+                          padding: bp.isMobile ? '7px 10px' : '8px 14px',
+                          whiteSpace: 'nowrap', flexShrink: 0,
+                          background: isActive ? tab.accent + '18' : 'transparent',
                           color: isActive ? tab.accent : T.textMuted,
                           fontFamily: T.fontMono,
-                          fontSize: bp.isMobile ? 11 : 12,
-                          fontWeight: isActive ? 600 : 400,
+                          fontSize: bp.isMobile ? 10 : 11,
+                          fontWeight: 700,
                           cursor: 'pointer',
-                          borderBottom: isActive ? `2px solid ${tab.accent}` : '2px solid transparent',
+                          border: isActive ? `${T.borderWidth} solid ${tab.accent}` : `${T.borderWidth} solid transparent`,
+                          borderBottom: isActive ? `${T.borderWidth} solid ${T.bg}` : `${T.borderWidth} solid transparent`,
                           borderRadius: `${T.radius.sm}px ${T.radius.sm}px 0 0`,
-                          transition: 'all 200ms ease-out', marginBottom: -1,
+                          transition: T.transition, marginBottom: -2,
+                          textTransform: 'uppercase', letterSpacing: '0.05em',
                         }}
-                        onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = tab.accent; e.currentTarget.style.background = T.surface + '60'; } }}
-                        onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = T.textMuted; e.currentTarget.style.background = 'transparent'; } }}
+                        onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = tab.accent; e.currentTarget.style.background = tab.accent + '10'; e.currentTarget.style.borderColor = tab.accent + '40'; } }}
+                        onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = T.textMuted; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; } }}
                       >
-                        <Icon size={bp.isMobile ? 12 : 14} color={isActive ? tab.accent : T.textMuted} />
+                        <Icon size={bp.isMobile ? 11 : 12} color={isActive ? tab.accent : T.textMuted} />
                         {tab.label}
                       </button>
                     );
@@ -1895,9 +1950,10 @@ export default function App() {
                 </div>
 
                 {/* Tab Content */}
-                <div style={{
+                <div key={activeTab} style={{
                   flex: 1, overflow: 'auto',
-                  padding: bp.isMobile ? '16px' : '20px 24px',
+                  padding: bp.isMobile ? '14px' : '18px 22px',
+                  animation: 'tabSlideIn 0.15s ease-out both',
                 }}>
                   {renderTabContent()}
                 </div>
@@ -1919,56 +1975,97 @@ export default function App() {
         </div>
       </div>
 
+      {/* Mobile FAB */}
+      {bp.isMobile && result && (
+        <MobileFAB
+          label={showInput ? '>' : '<'}
+          onClick={() => setShowInput(prev => !prev)}
+        />
+      )}
+
       {/* CSS Keyframes injected via style tag */}
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: ${T.bg}; overflow-x: hidden; }
-        ::selection { background: ${T.teal}40; color: ${T.textPrimary}; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: ${T.border}; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: ${T.borderHover}; }
-        textarea::placeholder { color: ${T.textMuted}; }
-        input::placeholder { color: ${T.textMuted}; }
+        body { background: ${T.bgDeep}; overflow-x: hidden; animation: powerOn 0.5s ease-out both; }
 
-        /* Hide scrollbar on tab bars */
-        .tab-scroll::-webkit-scrollbar { display: none; }
-
-        /* Focus-visible for keyboard nav */
-        *:focus-visible {
-          outline: 2px solid ${T.teal};
-          outline-offset: 2px;
+        /* CRT Power-On Effect */
+        @keyframes powerOn {
+          0%   { opacity: 0.1; transform: scale(0.98); filter: brightness(0.2); }
+          35%  { opacity: 1;   filter: brightness(1.5); }
+          55%  { opacity: 0.7; filter: brightness(0.8); }
+          75%  { opacity: 1;   filter: brightness(1.1); }
+          100% { opacity: 1;   transform: scale(1); filter: brightness(1); }
         }
+
+        /* Moving scanline */
+        body::before {
+          content: '';
+          position: fixed; left: 0; right: 0; height: 2px; top: 0;
+          background: rgba(0, 188, 212, 0.05);
+          animation: scanline 8s linear infinite;
+          pointer-events: none; z-index: 9999;
+        }
+
+        /* Static CRT scanline overlay */
+        body::after {
+          content: '';
+          position: fixed; inset: 0;
+          background: repeating-linear-gradient(
+            0deg, transparent, transparent 3px,
+            rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px
+          );
+          pointer-events: none; z-index: 9998;
+        }
+
+        ::selection { background: ${T.teal}50; color: ${T.bgDeep}; }
+
+        /* 4px teal scrollbars */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: ${T.teal}60; border-radius: 0; }
+        ::-webkit-scrollbar-thumb:hover { background: ${T.teal}; }
+        * { scrollbar-width: thin; scrollbar-color: ${T.teal}60 transparent; }
+
+        textarea::placeholder { color: ${T.textMuted}; opacity: 0.3; font-family: 'IBM Plex Mono', monospace; }
+        input::placeholder { color: ${T.textMuted}; opacity: 0.3; }
+
+        *:focus-visible { outline: 2px solid ${T.teal}; outline-offset: 2px; }
         button:focus:not(:focus-visible) { outline: none; }
 
-        /* Touch-friendly targets on mobile */
         @media (max-width: 767px) {
-          button { min-height: 44px; }
-          textarea { font-size: 16px !important; /* prevent iOS zoom */ }
+          button { min-height: 40px; }
+          textarea { font-size: 16px !important; }
         }
 
+        @keyframes scanline {
+          0%   { top: -2px; }
+          100% { top: 100vh; }
+        }
+        @keyframes kernelFadeIn {
+          from { opacity: 0; transform: translateX(-6px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes cursorBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes tabSlideIn {
+          from { opacity: 0; transform: translateX(8px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes dividerPulse {
+          0%, 100% { border-color: ${T.border}; }
+          50%      { border-color: ${T.teal}; box-shadow: 0 0 12px ${T.teal}40; }
+        }
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.7; }
         }
-        @keyframes shimmer {
-          0% { background-position: -400px 0; }
-          100% { background-position: 400px 0; }
-        }
-        @keyframes fadeSlideIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes glowPulse {
-          0%, 100% { box-shadow: 0 0 20px rgba(0,188,212,0.2), 0 0 40px rgba(0,188,212,0.05); }
-          50% { box-shadow: 0 0 30px rgba(0,188,212,0.35), 0 0 60px rgba(0,188,212,0.1); }
-        }
-        @keyframes subtleFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-4px); }
-        }
 
-        /* Respect reduced motion */
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
             animation-duration: 0.01ms !important;
