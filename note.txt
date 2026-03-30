@@ -1,0 +1,17 @@
+1. Overview
+Dark Mode allows users to switch the app interface to a darker color theme to reduce eye strain, especially at night.
+2. Problem
+Many users use the app at night and find the bright screen uncomfortable.
+3. Goal
+Provide a dark theme option to improve user comfort.
+Success Metrics
+40% of users enable Dark Mode
+User satisfaction improves
+4. User Story
+As a user, I want to enable dark mode so the app is easier to use in low light.
+5. Requirements
+Add a Dark Mode toggle in Settings.
+App UI changes to dark colors when enabled.
+The setting should be saved for future use.
+6. Out of Scope
+Automatic dark mode scheduling.
