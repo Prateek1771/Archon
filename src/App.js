@@ -1317,7 +1317,7 @@ function KernelLogLoader() {
           fontFamily: T.fontMono, fontSize: 10, color: T.teal,
           letterSpacing: '0.1em', marginBottom: 14, textTransform: 'uppercase',
         }}>
-          // ARCHON KERNEL — PROCESSING
+          {'// ARCHON KERNEL — PROCESSING'}
         </div>
         {KERNEL_LOGS.slice(0, visibleLines).map((line, i) => (
           <div key={i} style={{
@@ -1626,7 +1626,7 @@ export default function App() {
               margin: '0 0 4px 0', color: T.teal, letterSpacing: '0.1em',
               textTransform: 'uppercase',
             }}>
-              // INPUT.PRD
+              {'// INPUT.PRD'}
             </h2>
             <p style={{
               fontFamily: T.fontMono, fontSize: 11, color: T.textMuted, margin: 0,
